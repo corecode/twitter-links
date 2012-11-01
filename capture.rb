@@ -18,7 +18,7 @@ class LinkTrack
     Stats = %w{
              dns_inflight inflight
              redirects redirect_loops dns_errors
-             urls
+             urls http_errors
              hostcache_flushs
              incoming_urls
             }
@@ -112,8 +112,12 @@ class LinkTrack
           process_url(newurl, try + 1)
         end
       else
-        @stats.urls += 1
-        @cb.call(url)
+        if req.response_header.status >= 300
+          @stats.http_errors += 1
+        else
+          @stats.urls += 1
+          @cb.call(url)
+        end
       end
     end
 
