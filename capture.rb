@@ -62,7 +62,7 @@ class LinkTrack
 
     @stats.incoming_urls += 1
 
-    if @stats.incoming_urls % 1 == 0
+    if @stats.incoming_urls % 100 == 0
       puts @stats
     end
 
