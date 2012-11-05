@@ -16,7 +16,7 @@ end
 class LinkTrack
   class Stats
     Stats = %w{
-             dns_inflight inflight
+             dns_inflight
              redirects redirect_loops dns_errors
              urls http_errors
              hostcache_flushs
@@ -26,16 +26,22 @@ class LinkTrack
     Stats.each do |s|
       attr_accessor s
     end
+    attr_accessor :inflight
 
     def initialize
       Stats.each do |var|
         instance_variable_set('@'+var, 0)
       end
+      @inflight = []
     end
 
     def to_s
-      Stats.map do |var|
-        "#{var}: #{instance_variable_get('@'+var)}"
+      instance_variables.map do |var|
+        val = instance_variable_get(var)
+        if val.respond_to? :length
+          val = val.length
+        end
+        "#{var[1..-1]}: #{val}"
       end.join(", ")
     end
   end
@@ -98,11 +104,15 @@ class LinkTrack
   end
 
   def resolve_redirect(url, host, try)
-    @stats.inflight += 1
     req = EventMachine::HttpRequest.new(url, :host => host).head
+    @stats.inflight << req
     req.headers do
-      @stats.inflight -= 1
+      @stats.inflight.delete(req)
       newurl = req.response_header['Location']
+      # Seems some servers might send several Location headers
+      if newurl.respond_to? :last
+        newurl = newurl.last
+      end
       if newurl
         @stats.redirects += 1
 
@@ -122,7 +132,7 @@ class LinkTrack
     end
 
     req.errback do
-      @stats.inflight -= 1
+      @stats.inflight.delete(req)
     end
   end
 
