@@ -18,7 +18,7 @@ class LinkTrack
     Stats = %w{
              dns_inflight
              redirects redirect_loops dns_errors
-             urls http_errors
+             urls http_errors nohtml
              hostcache_flushs
              incoming_urls
             }
@@ -103,8 +103,8 @@ class LinkTrack
     end
   end
 
-  def resolve_redirect(url, host, try)
-    req = EventMachine::HttpRequest.new(url, :host => host).head
+  def resolve_redirect(url, host, try, method=:head)
+    req = EventMachine::HttpRequest.new(url, {:host => host, :head => {'User-Agent' => 'mozilla'}}).setup_request(method)
     @stats.inflight << req
     req.headers do
       @stats.inflight.delete(req)
@@ -122,11 +122,22 @@ class LinkTrack
           process_url(newurl, try + 1)
         end
       else
-        if req.response_header.status >= 300
-          @stats.http_errors += 1
+        ct = req.response_header['Content-type']
+        if !ct || req.response_header.status >= 300
+          if method == :get
+            @stats.http_errors += 1
+            puts url
+          else
+            resolve_redirect(url, host, try + 1, :get)
+          end
         else
-          @stats.urls += 1
-          @cb.call(url)
+          ct = [ct] if not Array === ct
+          if ct.grep(/html/).empty?
+            @stats.nohtml += 1
+          else
+            @stats.urls += 1
+            @cb.call(url)
+          end
         end
       end
     end
