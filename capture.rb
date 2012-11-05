@@ -126,7 +126,6 @@ class LinkTrack
         if !ct || req.response_header.status >= 300
           if method == :get
             @stats.http_errors += 1
-            puts url
           else
             resolve_redirect(url, host, try + 1, :get)
           end
