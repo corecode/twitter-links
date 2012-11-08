@@ -161,6 +161,8 @@ class LinkTrack
           urls.each do |u|
             process_url(u)
           end
+        rescue NoMethodError
+          # meh bug in em-http-request
         rescue Exception => e
           puts(([e.to_s]+e.backtrace).join("\n"))
           raise
