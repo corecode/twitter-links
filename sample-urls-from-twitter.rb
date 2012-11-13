@@ -27,5 +27,5 @@ puts '"dom","sampleurl"'
 doms.each do |dom, urls|
   su = urls.sort_by{|u| u[1]}
   sampleurl = su[-2] || su.last
-  puts "\"#{dom}\",\"#{sampleurl.first.gsub('"', '""')}\""
+  puts "#{dom},\"#{sampleurl.first.gsub('"', '""')}\""
 end
