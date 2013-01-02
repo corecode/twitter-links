@@ -34,4 +34,5 @@ created after 100'000 links.
 Author
 ------
 
-(c) Copyright 2012, 2013 Simon Schubert <2@0x2c.org>
+Copyright (c) 2012, 2013  Simon Schubert <2@0x2c.org>.  See the file
+`LICENSE` for details.
